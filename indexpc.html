@@ -28,7 +28,6 @@ body {
 }
 h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
 .subtitle { font-size: 13px; color: #7a7f9a; margin-bottom: 32px; }
-
 .waiting {
   display: flex;
   flex-direction: column;
@@ -48,9 +47,7 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
   50% { transform: scale(1.15); opacity: 0.6; }
 }
 .waiting-text { font-size: 14px; color: #7a7f9a; }
-
 .result-area { display: none; flex-direction: column; gap: 16px; }
-
 .codigo-box {
   background: #0f1117;
   border: 2px solid #00d4aa;
@@ -67,7 +64,6 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
   0% { transform: scale(0.92); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
-
 .btn-copy {
   padding: 14px;
   width: 100%;
@@ -82,7 +78,6 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
 }
 .btn-copy:hover { opacity: 0.9; }
 .btn-copy.copied { background: #1a1d27; color: #00d4aa; border: 2px solid #00d4aa; }
-
 .btn-novo {
   padding: 10px;
   width: 100%;
@@ -94,9 +89,23 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
   cursor: pointer;
 }
 .btn-novo:hover { border-color: #7a7f9a; color: #e8eaf0; }
-
 .historico-wrap { margin-top: 32px; width: 100%; max-width: 500px; }
-.hist-title { font-size: 12px; color: #7a7f9a; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.hist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.hist-title { font-size: 12px; color: #7a7f9a; text-transform: uppercase; letter-spacing: 0.08em; }
+.btn-limpar {
+  background: transparent;
+  border: 1px solid #ff4757;
+  color: #ff4757;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
 .hist-list { display: flex; flex-direction: column; gap: 6px; }
 .hist-item {
   background: #1a1d27;
@@ -119,7 +128,6 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
   font-size: 12px;
   cursor: pointer;
 }
-
 #conn-status {
   margin-top: 20px;
   font-size: 12px;
@@ -128,11 +136,7 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
   align-items: center;
   gap: 6px;
 }
-.dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #7a7f9a;
-}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #7a7f9a; }
 .dot.ok { background: #00d4aa; }
 .dot.err { background: #ff4757; }
 </style>
@@ -142,12 +146,10 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
 <div class="card">
   <h2>📺 Recebedor SIPAC</h2>
   <p class="subtitle">Aguardando leitura do celular...</p>
-
   <div class="waiting" id="waiting">
     <div class="pulse"></div>
     <p class="waiting-text">Abra o Scanner no celular e aponte para o QR Code</p>
   </div>
-
   <div class="result-area" id="result-area">
     <div class="codigo-box" id="codigo">—</div>
     <button class="btn-copy" id="btn-copy" onclick="copiar()">📋 Copiar para o SIPAC (Ctrl+V)</button>
@@ -156,7 +158,10 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
 </div>
 
 <div class="historico-wrap" id="historico-wrap" style="display:none">
-  <p class="hist-title">Histórico da sessão</p>
+  <div class="hist-header">
+    <span class="hist-title">Histórico salvo</span>
+    <button class="btn-limpar" onclick="limparHistorico()">🗑 Limpar tudo</button>
+  </div>
   <div class="hist-list" id="hist-list"></div>
 </div>
 
@@ -167,7 +172,21 @@ h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
 
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-const historico = [];
+const STORAGE_KEY = 'sipac_historico';
+
+function carregarHistorico() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch(e) { return []; }
+}
+
+function salvarHistorico(hist) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(hist));
+}
+
+let historico = carregarHistorico();
+
+if (historico.length > 0) renderHistorico();
 
 const pusher = new Pusher('290a0ae2aca24d0b44bf', { cluster: 'sa1' });
 const channel = pusher.subscribe('sipac');
@@ -186,8 +205,6 @@ channel.bind('codigo-lido', (data) => {
   const codigo = data.codigo;
   mostrarCodigo(codigo);
   adicionarHistorico(codigo);
-
-  // Copia automaticamente para a área de transferência
   navigator.clipboard.writeText(codigo).catch(() => {});
 });
 
@@ -216,9 +233,11 @@ function resetar() {
 
 function adicionarHistorico(codigo) {
   const agora = new Date();
+  const data = agora.toLocaleDateString('pt-BR');
   const hora = agora.toLocaleTimeString('pt-BR');
-  historico.unshift({ codigo, hora });
-  if (historico.length > 15) historico.pop();
+  historico.unshift({ codigo, data, hora });
+  if (historico.length > 50) historico.pop();
+  salvarHistorico(historico);
   renderHistorico();
 }
 
@@ -230,7 +249,7 @@ function renderHistorico() {
     <div class="hist-item">
       <div>
         <div class="hist-code">${h.codigo}</div>
-        <div class="hist-time">${h.hora}</div>
+        <div class="hist-time">${h.data} · ${h.hora}</div>
       </div>
       <button class="hist-copy" onclick="copiarHist(${i})">Copiar</button>
     </div>
@@ -241,6 +260,14 @@ function copiarHist(i) {
   navigator.clipboard.writeText(historico[i].codigo).catch(() => {});
   event.target.textContent = '✓';
   setTimeout(() => event.target.textContent = 'Copiar', 1500);
+}
+
+function limparHistorico() {
+  if (confirm('Apagar todo o histórico?')) {
+    historico = [];
+    salvarHistorico(historico);
+    document.getElementById('historico-wrap').style.display = 'none';
+  }
 }
 </script>
 </body>
