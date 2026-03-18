@@ -65,6 +65,16 @@ video {
   font-weight: bold;
   cursor: pointer;
 }
+.btn-novo {
+  padding: 11px;
+  width: 100%;
+  border: 1px solid #2e3250;
+  border-radius: 10px;
+  background: transparent;
+  color: #7a7f9a;
+  font-size: 14px;
+  cursor: pointer;
+}
 #status {
   margin-top: 14px;
   font-size: 13px;
@@ -91,6 +101,7 @@ canvas { display: none; }
 <div id="result-box">
   <div id="result">—</div>
   <button class="btn-copy" onclick="copiar()">📋 Copiar</button>
+  <button class="btn-novo" onclick="novaScan()">🔄 Ler próximo</button>
 </div>
 
 <div id="status">Câmera desligada</div>
@@ -98,65 +109,63 @@ canvas { display: none; }
 
 <canvas id="canvas"></canvas>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.19.1/zxing.min.js"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
+const PIPEDREAM_URL = 'https://eoxxorudr469v7q.m.pipedream.net';
 const PUSHER_KEY = '290a0ae2aca24d0b44bf';
 const PUSHER_CLUSTER = 'sa1';
 
-const pusher = new Pusher(PUSHER_KEY, { cluster: PUSHER_CLUSTER });
+new Pusher(PUSHER_KEY, { cluster: PUSHER_CLUSTER });
 
 let scanning = false;
 let stream = null;
 let animFrame = null;
 let lastCode = '';
-let reader = null;
+let detector = null;
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const btn = document.getElementById('btn');
-const status = document.getElementById('status');
+const statusEl = document.getElementById('status');
 const sendStatus = document.getElementById('send-status');
 const resultBox = document.getElementById('result-box');
 const resultDiv = document.getElementById('result');
-
-function getReader() {
-  if (!reader) {
-    const hints = new Map();
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-      ZXing.BarcodeFormat.QR_CODE,
-      ZXing.BarcodeFormat.CODE_128,
-      ZXing.BarcodeFormat.CODE_39,
-      ZXing.BarcodeFormat.EAN_13,
-      ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.ITF
-    ]);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-    reader = new ZXing.BrowserMultiFormatReader(hints);
-  }
-  return reader;
-}
 
 async function toggleScan() {
   scanning ? stopScan() : await startScan();
 }
 
 async function startScan() {
+  if (!('BarcodeDetector' in window)) {
+    statusEl.textContent = '⚠️ Use o Chrome atualizado para escanear.';
+    return;
+  }
+
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
     });
     video.srcObject = stream;
     await video.play();
+
+    detector = new BarcodeDetector({
+      formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'itf', 'pdf417', 'data_matrix']
+    });
+
     scanning = true;
     lastCode = '';
     btn.textContent = '⏹ Parar';
-    status.textContent = 'Aponte para o QR Code ou código de barras';
+    statusEl.textContent = '📷 Aponte para o QR Code';
     sendStatus.style.display = 'none';
+    resultBox.style.display = 'none';
     loop();
   } catch (err) {
-    status.textContent = 'Erro: permissão de câmera negada';
+    statusEl.textContent = 'Erro: permissão de câmera negada';
   }
 }
 
@@ -166,24 +175,25 @@ function stopScan() {
   if (stream) stream.getTracks().forEach(t => t.stop());
   video.srcObject = null;
   btn.textContent = '▶ Iniciar';
-  status.textContent = 'Câmera desligada';
+  statusEl.textContent = 'Câmera desligada';
 }
 
 function loop() {
   if (!scanning) return;
-  animFrame = requestAnimationFrame(() => {
+  animFrame = requestAnimationFrame(async () => {
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
       try {
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const luminance = new ZXing.RGBLuminanceSource(imgData.data, canvas.width, canvas.height);
-        const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
-        const result = getReader().decode(bitmap);
-        if (result && result.text && result.text !== lastCode) {
-          lastCode = result.text;
-          onCodeFound(result.text);
+        const codes = await detector.detect(canvas);
+        if (codes.length > 0) {
+          const code = codes[0].rawValue;
+          if (code && code !== lastCode) {
+            lastCode = code;
+            onCodeFound(code);
+            return;
+          }
         }
       } catch (e) {}
     }
@@ -192,14 +202,17 @@ function loop() {
 }
 
 async function onCodeFound(code) {
-  if (navigator.vibrate) navigator.vibrate(100);
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+
   resultDiv.textContent = code;
   resultBox.style.display = 'flex';
-  status.textContent = '✓ Código lido!';
+  document.querySelector('.btn-copy').textContent = '📋 Copiar';
+  statusEl.textContent = '✓ Código lido!';
+  sendStatus.style.display = 'none';
   stopScan();
 
   try {
-    await fetch('https://eoxxorudr469v7q.m.pipedream.net', {
+    await fetch(PIPEDREAM_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ codigo: code })
@@ -221,6 +234,12 @@ function copiar() {
     document.body.removeChild(el);
     document.querySelector('.btn-copy').textContent = '✓ Copiado!';
   });
+}
+
+function novaScan() {
+  resultBox.style.display = 'none';
+  sendStatus.style.display = 'none';
+  startScan();
 }
 </script>
 </body>
