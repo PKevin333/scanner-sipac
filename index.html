@@ -198,22 +198,14 @@ async function onCodeFound(code) {
   status.textContent = '✓ Código lido!';
   stopScan();
 
-  // Envia para o PC via Pusher REST API
   try {
-    await fetch('https://api-sa1.pusher.com/apps/2129496/events', {
+    await fetch('https://eoxxorudr469v7q.m.pipedream.net', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'codigo-lido',
-        channel: 'sipac',
-        data: JSON.stringify({ codigo: code }),
-        auth_key: PUSHER_KEY
-      })
+      body: JSON.stringify({ codigo: code })
     });
     sendStatus.style.display = 'block';
-  } catch(e) {
-    // fallback: só mostra o código localmente
-  }
+  } catch(e) {}
 }
 
 function copiar() {
