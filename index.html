@@ -2,26 +2,29 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Scanner SIPAC</title>
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: #0f1117;
   color: white;
-  font-family: Arial;
-  text-align: center;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
+  min-height: 100vh;
 }
+h2 { margin-bottom: 16px; font-size: 20px; }
 video {
   width: 100%;
   max-width: 400px;
   border-radius: 12px;
   margin-bottom: 15px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+  background: #000;
 }
-button {
+.btn-scan {
   padding: 15px;
   width: 100%;
   max-width: 400px;
@@ -32,70 +35,91 @@ button {
   font-size: 16px;
   cursor: pointer;
   color: #000;
+  margin-bottom: 16px;
 }
 #result-box {
-  margin-top: 20px;
+  width: 100%;
   max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
   display: none;
+  flex-direction: column;
+  gap: 10px;
 }
 #result {
-  font-size: 22px;
+  font-size: 26px;
   color: #00d4aa;
   font-weight: bold;
   word-break: break-all;
-  margin-bottom: 12px;
-}
-#copy-btn {
+  text-align: center;
+  padding: 16px;
   background: #1a1d27;
-  color: #00d4aa;
+  border-radius: 10px;
+}
+.btn-copy {
+  padding: 13px;
+  width: 100%;
   border: 2px solid #00d4aa;
   border-radius: 10px;
-  padding: 12px;
-  width: 100%;
+  background: #1a1d27;
+  color: #00d4aa;
   font-size: 15px;
   font-weight: bold;
   cursor: pointer;
 }
 #status {
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 13px;
   color: #7a7f9a;
+  text-align: center;
+  max-width: 400px;
 }
+#send-status {
+  margin-top: 8px;
+  font-size: 13px;
+  text-align: center;
+  color: #00d4aa;
+  display: none;
+}
+canvas { display: none; }
 </style>
 </head>
 <body>
 
 <h2>📦 Scanner SIPAC</h2>
 <video id="video" autoplay playsinline muted></video>
-<button onclick="toggleScan()" id="btn">▶ Iniciar</button>
+<button class="btn-scan" onclick="toggleScan()" id="btn">▶ Iniciar</button>
 
 <div id="result-box">
   <div id="result">—</div>
-  <button id="copy-btn" onclick="copiar()">📋 Copiar para o SIPAC</button>
+  <button class="btn-copy" onclick="copiar()">📋 Copiar</button>
 </div>
 
 <div id="status">Câmera desligada</div>
+<div id="send-status">✓ Enviado para o PC!</div>
 
-<canvas id="canvas" style="display:none"></canvas>
+<canvas id="canvas"></canvas>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.19.1/zxing.min.js"></script>
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
+const PUSHER_KEY = '290a0ae2aca24d0b44bf';
+const PUSHER_CLUSTER = 'sa1';
+
+const pusher = new Pusher(PUSHER_KEY, { cluster: PUSHER_CLUSTER });
+
 let scanning = false;
 let stream = null;
 let animFrame = null;
 let lastCode = '';
+let reader = null;
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const resultDiv = document.getElementById('result');
-const resultBox = document.getElementById('result-box');
 const btn = document.getElementById('btn');
 const status = document.getElementById('status');
-
-let reader = null;
+const sendStatus = document.getElementById('send-status');
+const resultBox = document.getElementById('result-box');
+const resultDiv = document.getElementById('result');
 
 function getReader() {
   if (!reader) {
@@ -129,10 +153,10 @@ async function startScan() {
     lastCode = '';
     btn.textContent = '⏹ Parar';
     status.textContent = 'Aponte para o QR Code ou código de barras';
+    sendStatus.style.display = 'none';
     loop();
   } catch (err) {
     status.textContent = 'Erro: permissão de câmera negada';
-    console.error(err);
   }
 }
 
@@ -161,26 +185,41 @@ function loop() {
           lastCode = result.text;
           onCodeFound(result.text);
         }
-      } catch (e) { /* nenhum código ainda */ }
+      } catch (e) {}
     }
     loop();
   });
 }
 
-function onCodeFound(code) {
+async function onCodeFound(code) {
   if (navigator.vibrate) navigator.vibrate(100);
   resultDiv.textContent = code;
-  resultBox.style.display = 'block';
-  document.getElementById('copy-btn').textContent = '📋 Copiar para o SIPAC';
-  status.textContent = '✓ Código lido! Copie e cole no SIPAC.';
+  resultBox.style.display = 'flex';
+  status.textContent = '✓ Código lido!';
   stopScan();
+
+  // Envia para o PC via Pusher REST API
+  try {
+    await fetch('https://api-sa1.pusher.com/apps/2129496/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'codigo-lido',
+        channel: 'sipac',
+        data: JSON.stringify({ codigo: code }),
+        auth_key: PUSHER_KEY
+      })
+    });
+    sendStatus.style.display = 'block';
+  } catch(e) {
+    // fallback: só mostra o código localmente
+  }
 }
 
 function copiar() {
   const code = resultDiv.textContent;
   navigator.clipboard.writeText(code).then(() => {
-    document.getElementById('copy-btn').textContent = '✓ Copiado!';
-    status.textContent = 'Cole no campo do SIPAC com Ctrl+V';
+    document.querySelector('.btn-copy').textContent = '✓ Copiado!';
   }).catch(() => {
     const el = document.createElement('textarea');
     el.value = code;
@@ -188,7 +227,7 @@ function copiar() {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    document.getElementById('copy-btn').textContent = '✓ Copiado!';
+    document.querySelector('.btn-copy').textContent = '✓ Copiado!';
   });
 }
 </script>
