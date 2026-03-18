@@ -3,202 +3,258 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIPAC - Recebedor</title>
+<title>SIPAC - Recebedor de Patrimônio</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: #0f1117;
-  color: white;
+  background: #f4f4f0;
+  color: #1a1a1a;
   font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  padding: 30px;
-}
-.card {
-  background: #1a1d27;
-  border-radius: 16px;
-  padding: 40px;
-  width: 100%;
-  max-width: 500px;
-  text-align: center;
-  border: 1px solid #2e3250;
-}
-h2 { font-size: 20px; margin-bottom: 8px; color: #e8eaf0; }
-.subtitle { font-size: 13px; color: #7a7f9a; margin-bottom: 32px; }
-.waiting {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 0;
 }
+header {
+  background: #1a3a6b;
+  border-bottom: 4px solid #f5c400;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+header img { width: 52px; height: 52px; object-fit: contain; }
+.header-text .title { font-size: 15px; font-weight: bold; color: #fff; letter-spacing: 0.04em; }
+.header-text .sub { font-size: 11px; color: #f5c400; margin-top: 2px; }
+.subheader {
+  background: #f5c400;
+  padding: 7px 24px;
+  border-bottom: 1px solid #d4a800;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.subheader span { font-size: 11px; font-weight: bold; color: #2c2c00; text-transform: uppercase; letter-spacing: 0.05em; }
+.subheader .data { font-size: 10px; color: #5c4a00; font-weight: normal; text-transform: none; letter-spacing: 0; }
+.breadcrumb {
+  background: #fff;
+  padding: 5px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 10px;
+  color: #999;
+}
+.main { flex: 1; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; max-width: 800px; width: 100%; margin: 0 auto; }
+
+.waiting-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 32px;
+  text-align: center;
+  border-left: 4px solid #f5c400;
+}
+.pulse-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
 .pulse {
-  width: 60px; height: 60px;
+  width: 50px; height: 50px;
   border-radius: 50%;
-  background: #00d4aa22;
-  border: 3px solid #00d4aa;
+  background: #fff8e0;
+  border: 3px solid #f5c400;
   animation: pulse 1.5s ease-in-out infinite;
 }
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.15); opacity: 0.6; }
+  50% { transform: scale(1.12); opacity: 0.6; }
 }
-.waiting-text { font-size: 14px; color: #7a7f9a; }
-.result-area { display: none; flex-direction: column; gap: 16px; }
-.codigo-box {
-  background: #0f1117;
-  border: 2px solid #00d4aa;
-  border-radius: 12px;
+.waiting-title { font-size: 13px; font-weight: bold; color: #333; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.waiting-sub { font-size: 12px; color: #888; }
+
+.result-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   padding: 20px;
-  font-size: 36px;
+  border-left: 4px solid #f5c400;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.result-label { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; }
+.codigo-box {
+  font-size: 32px;
   font-weight: bold;
-  color: #00d4aa;
-  letter-spacing: 0.05em;
-  word-break: break-all;
+  color: #1a1a1a;
+  font-family: monospace;
+  letter-spacing: 0.04em;
   animation: pop 0.3s ease;
 }
 @keyframes pop {
-  0% { transform: scale(0.92); opacity: 0; }
+  0% { transform: scale(0.95); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
-.btn-copy {
-  padding: 14px;
-  width: 100%;
+.btn-row { display: flex; gap: 10px; }
+.btn-copiar {
+  padding: 9px 20px;
+  background: #f5c400;
   border: none;
-  border-radius: 10px;
-  background: #00d4aa;
-  color: #000;
-  font-size: 16px;
+  border-radius: 3px;
+  font-size: 12px;
   font-weight: bold;
+  color: #2c2c00;
   cursor: pointer;
-  transition: opacity 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
-.btn-copy:hover { opacity: 0.9; }
-.btn-copy.copied { background: #1a1d27; color: #00d4aa; border: 2px solid #00d4aa; }
-.btn-novo {
-  padding: 10px;
-  width: 100%;
-  border: 1px solid #2e3250;
-  border-radius: 10px;
-  background: transparent;
-  color: #7a7f9a;
-  font-size: 14px;
+.btn-copiar.copiado { background: #fff; border: 1px solid #2c7a00; color: #2c7a00; }
+.btn-aguardar {
+  padding: 9px 16px;
+  background: #fff;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #555;
   cursor: pointer;
 }
-.btn-novo:hover { border-color: #7a7f9a; color: #e8eaf0; }
-.historico-wrap { margin-top: 32px; width: 100%; max-width: 500px; }
-.hist-header {
+
+.hist-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.hist-head {
+  background: #f0f0ea;
+  padding: 8px 14px;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
-.hist-title { font-size: 12px; color: #7a7f9a; text-transform: uppercase; letter-spacing: 0.08em; }
-.btn-limpar {
-  background: transparent;
-  border: 1px solid #ff4757;
-  color: #ff4757;
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 11px;
+.hist-head-title { font-size: 11px; font-weight: bold; color: #333; text-transform: uppercase; letter-spacing: 0.05em; }
+.btn-limpar { background: transparent; border: none; color: #a00; font-size: 10px; cursor: pointer; text-decoration: underline; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+thead tr { background: #f9f9f5; border-bottom: 1px solid #e8e8e0; }
+th { padding: 7px 14px; text-align: left; color: #666; font-weight: normal; text-transform: uppercase; font-size: 9px; letter-spacing: 0.05em; }
+th.right { text-align: right; }
+td { padding: 8px 14px; color: #333; border-bottom: 1px solid #f0f0f0; }
+td.mono { font-family: monospace; font-weight: bold; font-size: 13px; color: #1a1a1a; }
+td.right { text-align: right; }
+tr:last-child td { border-bottom: none; }
+tr:nth-child(odd) { background: #fffef8; }
+.td-copy {
+  padding: 3px 10px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 9px;
+  color: #333;
   cursor: pointer;
 }
-.hist-list { display: flex; flex-direction: column; gap: 6px; }
-.hist-item {
-  background: #1a1d27;
-  border: 1px solid #2e3250;
-  border-radius: 8px;
-  padding: 10px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-}
-.hist-code { font-weight: bold; color: #e8eaf0; font-family: monospace; font-size: 15px; }
-.hist-time { font-size: 11px; color: #7a7f9a; }
-.hist-copy {
-  background: #22263a;
-  border: 1px solid #2e3250;
-  color: #e8eaf0;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-#conn-status {
-  margin-top: 20px;
-  font-size: 12px;
-  color: #7a7f9a;
+
+footer {
+  background: #1a3a6b;
+  padding: 6px 24px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  margin-top: auto;
 }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: #7a7f9a; }
-.dot.ok { background: #00d4aa; }
-.dot.err { background: #ff4757; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #888; }
+.dot.ok { background: #4caf50; }
+.dot.err { background: #e53935; }
+footer span { font-size: 10px; color: #ccd9f0; }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>📺 Recebedor SIPAC</h2>
-  <p class="subtitle">Aguardando leitura do celular...</p>
-  <div class="waiting" id="waiting">
-    <div class="pulse"></div>
-    <p class="waiting-text">Abra o Scanner no celular e aponte para o QR Code</p>
+<header>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Bras%C3%A3o_da_Pol%C3%ADcia_Rodovi%C3%A1ria_Federal_%28Brasil%29.svg/800px-Bras%C3%A3o_da_Pol%C3%ADcia_Rodovi%C3%A1ria_Federal_%28Brasil%29.svg.png" alt="PRF" />
+  <div class="header-text">
+    <div class="title">POLÍCIA RODOVIÁRIA FEDERAL</div>
+    <div class="sub">SIPAC — Gestão de Patrimônio</div>
   </div>
-  <div class="result-area" id="result-area">
+</header>
+
+<div class="subheader">
+  <span>Leitura de QR Code — Consulta Geral de Bens</span>
+  <span class="data" id="data-hora"></span>
+</div>
+
+<div class="breadcrumb">Patrimônio &gt; Consulta Geral de Bens &gt; Leitura QR Code</div>
+
+<div class="main">
+
+  <div class="waiting-card" id="waiting-card">
+    <div class="pulse-wrap"><div class="pulse"></div></div>
+    <div class="waiting-title">Aguardando Leitura</div>
+    <div class="waiting-sub">Abra o Scanner no celular e aponte para o QR Code do bem</div>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <div class="result-label">Último Tombamento Recebido</div>
     <div class="codigo-box" id="codigo">—</div>
-    <button class="btn-copy" id="btn-copy" onclick="copiar()">📋 Copiar para o SIPAC (Ctrl+V)</button>
-    <button class="btn-novo" onclick="resetar()">🔄 Aguardar próximo código</button>
+    <div class="btn-row">
+      <button class="btn-copiar" id="btn-copy" onclick="copiar()">Copiar Número</button>
+      <button class="btn-aguardar" onclick="resetar()">Aguardar Próximo</button>
+    </div>
   </div>
+
+  <div class="hist-card" id="hist-card" style="display:none">
+    <div class="hist-head">
+      <span class="hist-head-title">Histórico de Leituras</span>
+      <button class="btn-limpar" onclick="limparHistorico()">Limpar Histórico</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Tombamento</th>
+          <th>Data</th>
+          <th>Hora</th>
+          <th class="right">Acao</th>
+        </tr>
+      </thead>
+      <tbody id="hist-body"></tbody>
+    </table>
+  </div>
+
 </div>
 
-<div class="historico-wrap" id="historico-wrap" style="display:none">
-  <div class="hist-header">
-    <span class="hist-title">Histórico salvo</span>
-    <button class="btn-limpar" onclick="limparHistorico()">🗑 Limpar tudo</button>
-  </div>
-  <div class="hist-list" id="hist-list"></div>
-</div>
-
-<div id="conn-status">
+<footer>
   <div class="dot" id="dot"></div>
   <span id="conn-text">Conectando...</span>
-</div>
+</footer>
 
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 const STORAGE_KEY = 'sipac_historico';
 
 function carregarHistorico() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch(e) { return []; }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e) { return []; }
 }
-
 function salvarHistorico(hist) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(hist));
 }
 
 let historico = carregarHistorico();
-
 if (historico.length > 0) renderHistorico();
+
+function atualizarDataHora() {
+  const agora = new Date();
+  document.getElementById('data-hora').textContent =
+    agora.toLocaleDateString('pt-BR') + ' · ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+atualizarDataHora();
+setInterval(atualizarDataHora, 60000);
 
 const pusher = new Pusher('290a0ae2aca24d0b44bf', { cluster: 'sa1' });
 const channel = pusher.subscribe('sipac');
 
 pusher.connection.bind('connected', () => {
   document.getElementById('dot').className = 'dot ok';
-  document.getElementById('conn-text').textContent = 'Conectado — aguardando celular';
+  document.getElementById('conn-text').textContent = 'Conectado — aguardando leitura do celular';
 });
-
 pusher.connection.bind('disconnected', () => {
   document.getElementById('dot').className = 'dot err';
-  document.getElementById('conn-text').textContent = 'Desconectado — recarregue a página';
+  document.getElementById('conn-text').textContent = 'Desconectado — recarregue a pagina';
 });
 
 channel.bind('codigo-lido', (data) => {
@@ -209,64 +265,66 @@ channel.bind('codigo-lido', (data) => {
 });
 
 function mostrarCodigo(codigo) {
-  document.getElementById('waiting').style.display = 'none';
-  const area = document.getElementById('result-area');
-  area.style.display = 'flex';
+  document.getElementById('waiting-card').style.display = 'none';
+  const card = document.getElementById('result-card');
+  card.style.display = 'flex';
   document.getElementById('codigo').textContent = codigo;
-  document.getElementById('btn-copy').textContent = '📋 Copiar para o SIPAC (Ctrl+V)';
-  document.getElementById('btn-copy').classList.remove('copied');
+  const btn = document.getElementById('btn-copy');
+  btn.textContent = 'Copiar Número';
+  btn.classList.remove('copiado');
 }
 
 function copiar() {
   const codigo = document.getElementById('codigo').textContent;
   navigator.clipboard.writeText(codigo).then(() => {
     const btn = document.getElementById('btn-copy');
-    btn.textContent = '✓ Copiado! Cole no campo Tombamento';
-    btn.classList.add('copied');
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copiado');
   });
 }
 
 function resetar() {
-  document.getElementById('result-area').style.display = 'none';
-  document.getElementById('waiting').style.display = 'flex';
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('waiting-card').style.display = 'block';
 }
 
 function adicionarHistorico(codigo) {
   const agora = new Date();
-  const data = agora.toLocaleDateString('pt-BR');
-  const hora = agora.toLocaleTimeString('pt-BR');
-  historico.unshift({ codigo, data, hora });
+  historico.unshift({
+    codigo,
+    data: agora.toLocaleDateString('pt-BR'),
+    hora: agora.toLocaleTimeString('pt-BR')
+  });
   if (historico.length > 50) historico.pop();
   salvarHistorico(historico);
   renderHistorico();
 }
 
 function renderHistorico() {
-  const wrap = document.getElementById('historico-wrap');
-  const list = document.getElementById('hist-list');
-  wrap.style.display = 'block';
-  list.innerHTML = historico.map((h, i) => `
-    <div class="hist-item">
-      <div>
-        <div class="hist-code">${h.codigo}</div>
-        <div class="hist-time">${h.data} · ${h.hora}</div>
-      </div>
-      <button class="hist-copy" onclick="copiarHist(${i})">Copiar</button>
-    </div>
+  document.getElementById('hist-card').style.display = 'block';
+  document.getElementById('hist-body').innerHTML = historico.map((h, i) => `
+    <tr>
+      <td class="mono">${h.codigo}</td>
+      <td>${h.data}</td>
+      <td>${h.hora}</td>
+      <td class="right"><button class="td-copy" onclick="copiarHist(${i})">Copiar</button></td>
+    </tr>
   `).join('');
 }
 
 function copiarHist(i) {
   navigator.clipboard.writeText(historico[i].codigo).catch(() => {});
-  event.target.textContent = '✓';
+  event.target.textContent = 'Copiado';
   setTimeout(() => event.target.textContent = 'Copiar', 1500);
 }
 
 function limparHistorico() {
-  if (confirm('Apagar todo o histórico?')) {
+  if (confirm('Apagar todo o historico de leituras?')) {
     historico = [];
     salvarHistorico(historico);
-    document.getElementById('historico-wrap').style.display = 'none';
+    document.getElementById('hist-card').style.display = 'none';
+    document.getElementById('waiting-card').style.display = 'block';
+    document.getElementById('result-card').style.display = 'none';
   }
 }
 </script>
