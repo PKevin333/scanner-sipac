@@ -111,11 +111,10 @@ canvas { display: none; }
 
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-const PIPEDREAM_URL = 'https://eoxxorudr469v7q.m.pipedream.net';
 const PUSHER_KEY = '290a0ae2aca24d0b44bf';
+const PUSHER_SECRET = 'e3cd6299bc4802a0d8cc';
+const PUSHER_APP_ID = '2129496';
 const PUSHER_CLUSTER = 'sa1';
-
-new Pusher(PUSHER_KEY, { cluster: PUSHER_CLUSTER });
 
 let scanning = false;
 let stream = null;
@@ -141,22 +140,15 @@ async function startScan() {
     statusEl.textContent = '⚠️ Use o Chrome atualizado para escanear.';
     return;
   }
-
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
     });
     video.srcObject = stream;
     await video.play();
-
     detector = new BarcodeDetector({
       formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'itf', 'pdf417', 'data_matrix']
     });
-
     scanning = true;
     lastCode = '';
     btn.textContent = '⏹ Parar';
@@ -201,24 +193,63 @@ function loop() {
   });
 }
 
+async function hmacSHA256(secret, message) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function md5hex(str) {
+  const buf = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+}
+
+async function enviarParaPC(codigo) {
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const channel = 'sipac';
+    const event = 'codigo-lido';
+    const dataStr = JSON.stringify({ codigo });
+    const bodyMd5 = await md5hex(dataStr);
+    const body = JSON.stringify({ name: event, channel, data: dataStr });
+
+    const params = [
+      `auth_key=${PUSHER_KEY}`,
+      `auth_timestamp=${timestamp}`,
+      `auth_version=1.0`,
+      `body_md5=${bodyMd5}`
+    ].sort().join('&');
+
+    const stringToSign = `POST\n/apps/${PUSHER_APP_ID}/events\n${params}`;
+    const signature = await hmacSHA256(PUSHER_SECRET, stringToSign);
+
+    const url = `https://api-${PUSHER_CLUSTER}.pusher.com/apps/${PUSHER_APP_ID}/events?${params}&auth_signature=${signature}`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body
+    });
+
+    if (res.ok) sendStatus.style.display = 'block';
+  } catch(e) {}
+}
+
 async function onCodeFound(code) {
   if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
-
   resultDiv.textContent = code;
   resultBox.style.display = 'flex';
   document.querySelector('.btn-copy').textContent = '📋 Copiar';
   statusEl.textContent = '✓ Código lido!';
   sendStatus.style.display = 'none';
   stopScan();
-
-  try {
-    await fetch(PIPEDREAM_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ codigo: code })
-    });
-    sendStatus.style.display = 'block';
-  } catch(e) {}
+  await enviarParaPC(code);
 }
 
 function copiar() {
