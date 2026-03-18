@@ -21,26 +21,18 @@ body {
 header {
   background: #1a3a6b;
   border-bottom: 4px solid #f5c400;
-  padding: 12px 16px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
 }
 
-/* LOGO AJUSTADA */
-.logo {
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-  background: #fff;
-  border-radius: 6px;
-  padding: 3px;
-  box-shadow: 0 0 4px rgba(0,0,0,0.2);
-}
-
+/* TEXTO HEADER */
 .header-text {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .header-text .title {
@@ -53,7 +45,7 @@ header {
 .header-text .sub {
   font-size: 10px;
   color: #f5c400;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 /* SUBHEADER */
@@ -66,6 +58,7 @@ header {
   color: #2c2c00;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-align: center;
 }
 
 /* CONTEÚDO */
@@ -172,6 +165,7 @@ footer {
   display: flex;
   align-items: center;
   gap: 6px;
+  justify-content: center;
 }
 
 .dot-footer {
@@ -197,7 +191,6 @@ canvas { display: none; }
 <body>
 
 <header>
-  <img src="img/logo.jpg" alt="PRF" class="logo">
   <div class="header-text">
     <span class="title">POLÍCIA RODOVIÁRIA FEDERAL</span>
     <span class="sub">SIPAC — Gestão de Patrimônio</span>
