@@ -3,109 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Scanner SIPAC</title>
+<title>SIPAC - Scanner de Patrimônio</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: #0f1117;
-  color: white;
+  background: #f4f4f0;
+  color: #1a1a1a;
   font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20px;
   min-height: 100vh;
 }
-h2 { margin-bottom: 16px; font-size: 20px; }
+header {
+  background: #1a3a6b;
+  border-bottom: 4px solid #f5c400;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+header img { width: 44px; height: 44px; object-fit: contain; }
+.header-text { display: flex; flex-direction: column; }
+.header-text .title { font-size: 13px; font-weight: bold; color: #fff; letter-spacing: 0.04em; }
+.header-text .sub { font-size: 10px; color: #f5c400; margin-top: 1px; }
+.subheader {
+  background: #f5c400;
+  padding: 6px 16px;
+  border-bottom: 1px solid #d4a800;
+  font-size: 10px;
+  font-weight: bold;
+  color: #2c2c00;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
 video {
   width: 100%;
   max-width: 400px;
-  border-radius: 12px;
-  margin-bottom: 15px;
+  border-radius: 4px;
   background: #000;
+  border: 1px solid #ccc;
 }
 .btn-scan {
-  padding: 15px;
+  padding: 13px;
   width: 100%;
   max-width: 400px;
   border: none;
-  border-radius: 10px;
-  background: #00d4aa;
+  border-radius: 3px;
+  background: #f5c400;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 13px;
   cursor: pointer;
-  color: #000;
-  margin-bottom: 16px;
+  color: #2c2c00;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.btn-scan:active { opacity: 0.85; }
+.btn-scan.parar {
+  background: #fff;
+  border: 1px solid #1a3a6b;
+  color: #1a3a6b;
 }
 #result-box {
   width: 100%;
   max-width: 400px;
   display: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+}
+.result-label {
+  font-size: 9px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 #result {
-  font-size: 26px;
-  color: #00d4aa;
+  font-size: 22px;
   font-weight: bold;
-  word-break: break-all;
-  text-align: center;
-  padding: 16px;
-  background: #1a1d27;
-  border-radius: 10px;
+  color: #1a1a1a;
+  font-family: monospace;
+  background: #fff;
+  padding: 12px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  border-left: 4px solid #f5c400;
+  letter-spacing: 0.04em;
 }
 .btn-copy {
-  padding: 13px;
-  width: 100%;
-  border: 2px solid #00d4aa;
-  border-radius: 10px;
-  background: #1a1d27;
-  color: #00d4aa;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-}
-.btn-novo {
   padding: 11px;
   width: 100%;
-  border: 1px solid #2e3250;
-  border-radius: 10px;
-  background: transparent;
-  color: #7a7f9a;
-  font-size: 14px;
+  border: none;
+  border-radius: 3px;
+  background: #f5c400;
+  color: #2c2c00;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.btn-copy.copiado {
+  background: #fff;
+  border: 1px solid #2c7a00;
+  color: #2c7a00;
+}
+.btn-novo {
+  padding: 9px;
+  width: 100%;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
   cursor: pointer;
 }
 #status {
-  margin-top: 14px;
-  font-size: 13px;
-  color: #7a7f9a;
+  font-size: 12px;
+  color: #666;
   text-align: center;
   max-width: 400px;
+  width: 100%;
 }
 #send-status {
-  margin-top: 8px;
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
-  color: #00d4aa;
+  color: #2c7a00;
+  font-weight: bold;
   display: none;
+  width: 100%;
+  max-width: 400px;
 }
+footer {
+  background: #1a3a6b;
+  padding: 5px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+}
+.dot-footer { width: 7px; height: 7px; border-radius: 50%; background: #888; }
+.dot-footer.ok { background: #4caf50; }
+footer span { font-size: 9px; color: #ccd9f0; }
 canvas { display: none; }
 </style>
 </head>
 <body>
 
-<h2>📦 Scanner SIPAC</h2>
-<video id="video" autoplay playsinline muted></video>
-<button class="btn-scan" onclick="toggleScan()" id="btn">▶ Iniciar</button>
+<header>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Bras%C3%A3o_da_Pol%C3%ADcia_Rodovi%C3%A1ria_Federal_%28Brasil%29.svg/800px-Bras%C3%A3o_da_Pol%C3%ADcia_Rodovi%C3%A1ria_Federal_%28Brasil%29.svg.png" alt="PRF" />
+  <div class="header-text">
+    <span class="title">POLÍCIA RODOVIÁRIA FEDERAL</span>
+    <span class="sub">SIPAC — Gestão de Patrimônio</span>
+  </div>
+</header>
 
-<div id="result-box">
-  <div id="result">—</div>
-  <button class="btn-copy" onclick="copiar()">📋 Copiar</button>
-  <button class="btn-novo" onclick="novaScan()">🔄 Ler próximo</button>
+<div class="subheader">Leitura de QR Code — Patrimônio</div>
+
+<div class="content">
+  <video id="video" autoplay playsinline muted></video>
+  <button class="btn-scan" onclick="toggleScan()" id="btn">Iniciar Leitura</button>
+
+  <div id="result-box">
+    <div class="result-label">Número lido</div>
+    <div id="result">—</div>
+    <button class="btn-copy" onclick="copiar()" id="btn-copy">Copiar Número</button>
+    <button class="btn-novo" onclick="novaScan()">Ler Próximo</button>
+  </div>
+
+  <div id="status">Câmera desligada</div>
+  <div id="send-status">Enviado para o PC com sucesso</div>
 </div>
 
-<div id="status">Câmera desligada</div>
-<div id="send-status">✓ Enviado para o PC!</div>
+<footer>
+  <div class="dot-footer" id="dot-footer"></div>
+  <span id="footer-text">Aguardando...</span>
+</footer>
 
 <canvas id="canvas"></canvas>
 
@@ -131,6 +210,8 @@ const statusEl = document.getElementById('status');
 const sendStatus = document.getElementById('send-status');
 const resultBox = document.getElementById('result-box');
 const resultDiv = document.getElementById('result');
+const dotFooter = document.getElementById('dot-footer');
+const footerText = document.getElementById('footer-text');
 
 async function toggleScan() {
   scanning ? stopScan() : await startScan();
@@ -138,7 +219,7 @@ async function toggleScan() {
 
 async function startScan() {
   if (!('BarcodeDetector' in window)) {
-    statusEl.textContent = '⚠️ Use o Chrome atualizado para escanear.';
+    statusEl.textContent = 'Use o Chrome atualizado para escanear.';
     return;
   }
   try {
@@ -152,13 +233,16 @@ async function startScan() {
     });
     scanning = true;
     lastCode = '';
-    btn.textContent = '⏹ Parar';
-    statusEl.textContent = '📷 Aponte para o QR Code';
+    btn.textContent = 'Parar Leitura';
+    btn.classList.add('parar');
+    statusEl.textContent = 'Aponte para o QR Code do bem';
     sendStatus.style.display = 'none';
     resultBox.style.display = 'none';
+    dotFooter.className = 'dot-footer ok';
+    footerText.textContent = 'Camera ativa — aguardando leitura';
     loop();
   } catch (err) {
-    statusEl.textContent = 'Erro: permissão de câmera negada';
+    statusEl.textContent = 'Erro: permissao de camera negada';
   }
 }
 
@@ -167,8 +251,11 @@ function stopScan() {
   if (animFrame) cancelAnimationFrame(animFrame);
   if (stream) stream.getTracks().forEach(t => t.stop());
   video.srcObject = null;
-  btn.textContent = '▶ Iniciar';
-  statusEl.textContent = 'Câmera desligada';
+  btn.textContent = 'Iniciar Leitura';
+  btn.classList.remove('parar');
+  statusEl.textContent = 'Camera desligada';
+  dotFooter.className = 'dot-footer';
+  footerText.textContent = 'Camera desligada';
 }
 
 function loop() {
@@ -198,11 +285,11 @@ async function onCodeFound(code) {
   if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
   resultDiv.textContent = code;
   resultBox.style.display = 'flex';
-  document.querySelector('.btn-copy').textContent = '📋 Copiar';
-  statusEl.textContent = '✓ Código lido!';
+  document.getElementById('btn-copy').textContent = 'Copiar Número';
+  document.getElementById('btn-copy').classList.remove('copiado');
+  statusEl.textContent = 'Numero lido com sucesso';
   sendStatus.style.display = 'none';
   stopScan();
-
   try {
     await fetch(PIPEDREAM_URL, {
       method: 'POST',
@@ -210,13 +297,17 @@ async function onCodeFound(code) {
       body: JSON.stringify({ codigo: code })
     });
     sendStatus.style.display = 'block';
+    dotFooter.className = 'dot-footer ok';
+    footerText.textContent = 'Enviado para o PC com sucesso';
   } catch(e) {}
 }
 
 function copiar() {
   const code = resultDiv.textContent;
   navigator.clipboard.writeText(code).then(() => {
-    document.querySelector('.btn-copy').textContent = '✓ Copiado!';
+    const b = document.getElementById('btn-copy');
+    b.textContent = 'Copiado!';
+    b.classList.add('copiado');
   }).catch(() => {
     const el = document.createElement('textarea');
     el.value = code;
@@ -224,7 +315,7 @@ function copiar() {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    document.querySelector('.btn-copy').textContent = '✓ Copiado!';
+    document.getElementById('btn-copy').textContent = 'Copiado!';
   });
 }
 
